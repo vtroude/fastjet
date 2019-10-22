@@ -102,7 +102,7 @@ class SRAG(SRA):
 		azimuth = np.array(momenta.phi())
 		rapidity = np.array(momenta.theta_cm())
 		if index is None:
-			d = np.minimum(kt, kt.T)*((azimuth-azimuth.T)**2+(rapidity-rapidity.T)**2)/self.R/self.R + np.diag(kt.reshape(-1))
+			d = np.minimum(kt, kt.T)*((azimuth-azimuth.T)**2+np.log(np.abs(rapidity/rapidity.T))**2)/self.R/self.R + np.diag(kt.reshape(-1))
 		else:
 			d = np.minimum(kt[index], kt)*((azimuth[index]-azimuth)**2+(rapidity[index]-rapidity)**2)/self.R/self.R
 			d[index] = kt[index]
@@ -156,8 +156,8 @@ def test_algorithms(ja):
 	ja.list_to_momentum(jets_new).plot()
 	pl.show()
 
-#ja = SRAG(R=1.)
-#test_algorithms(ja)
+ja = SRAG(R=1.)
+test_algorithms(ja)
 
 
 
