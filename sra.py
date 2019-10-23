@@ -40,9 +40,10 @@ class SRA:
 		return d
 
 	def merge(self, momenta, d, i, j):
-		momenta[i] = momenta[i]+momenta[j]
-		momenta, d = self.erase(momenta, d, j)
-		d = self.adjust_distance(momenta, d, i)
+		I = np.minimum(i,j)
+		momenta[I] = momenta[i]+momenta[j]
+		momenta, d = self.erase(momenta, d, np.maximum(i,j))
+		d = self.adjust_distance(momenta, d, I)
 	
 		return momenta, d
 
@@ -54,7 +55,7 @@ class SRA:
 			if argDmin[0]==argDmin[1]:	# Beam distance is the minimum
 				if self.cut_off(momenta[argDmin[0]], cut_off):
 					jets.append(momenta[argDmin[0]]) 	# add it to the list
-				momenta, d = self.erase(momenta, d, argDmin[0])		# delete the corespounding distance from
+				momenta, d = self.erase(momenta, d, argDmin[0])		# delete the corespounding distance
 			else:
 				momenta, d = self.merge(momenta, d, argDmin[0], argDmin[1])
 
@@ -101,10 +102,11 @@ class SRAG(SRA):
 		kt = self.beamDistance(momenta)
 		azimuth = np.array(momenta.phi())
 		rapidity = np.array(momenta.theta_cm())
+		rapidity = np.where(rapidity<0, rapidity+math.pi, rapidity)
 		if index is None:
-			d = np.minimum(kt, kt.T)*((azimuth-azimuth.T)**2+np.log(np.abs(rapidity/rapidity.T))**2)/self.R/self.R + np.diag(kt.reshape(-1))
+			d = np.minimum(kt, kt.T)*((azimuth-azimuth.T)**2+np.log(rapidity/rapidity.T)**2)/self.R/self.R + np.diag(kt.reshape(-1))
 		else:
-			d = np.minimum(kt[index], kt)*((azimuth[index]-azimuth)**2+(rapidity[index]-rapidity)**2)/self.R/self.R
+			d = np.minimum(kt[index], kt)*((azimuth[index]-azimuth)**2+np.log(rapidity[index]/rapidity)**2)/self.R/self.R
 			d[index] = kt[index]
 			d = d.reshape(-1)
 
@@ -156,8 +158,8 @@ def test_algorithms(ja):
 	ja.list_to_momentum(jets_new).plot()
 	pl.show()
 
-ja = SRAG(R=1.)
-test_algorithms(ja)
+#ja = SRAG(R=1.)
+#test_algorithms(ja)
 
 
 
