@@ -58,10 +58,10 @@ class Momentum(np.ndarray):
 		else:
 			sgn = np.sign(self[1])
 			if sgn == 0: sgn=1
-			return np.arccos(self[3]/self.p_norm())
+			return sgn*np.arccos(self[3]/self.p_norm())
 
 	def rapidity(self):
-		return -np.log(np.tan(self.theta_cm())/2)
+		return -np.log(np.tan(self.theta_cm()/2))
 
 	def pt2(self):			# norm squared of the transverse momentum (xy-plane)
 		if self.ndim>1:
@@ -250,7 +250,7 @@ def create_impulsion(p):
 	return p*np.array([math.sin(theta)*math.cos(phi), math.sin(theta)*math.sin(phi), math.cos(theta)])
 
 def create_rand_impulsion(E):
-	p = E*np.random.random()
+	p = E*(np.random.random()*0.5)
 	E = E-p
 
 	return E, create_impulsion(p)

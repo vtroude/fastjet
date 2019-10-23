@@ -4,8 +4,8 @@ import math
 import pylab as pl
 import momentum
 
-class SRA:
-	''' Sequential Recombination Algorithm '''
+class JA:
+	''' Jet Algorithm '''
 
 	def __init__(self): pass
 
@@ -15,6 +15,8 @@ class SRA:
 	def distance(self, momenta, index=None): pass
 	@abstractmethod
 	def cut_off(self, jet, cut_off): pass
+	@abstractmethod
+	def launch(self, momenta, cut_off=None): pass
 
 	def list_to_momentum(self, jets):
 		J = momentum.Momentum(np.zeros((len(jets), jets[0].shape[0]-1)))
@@ -47,6 +49,11 @@ class SRA:
 	
 		return momenta, d
 
+class SRA(JA):
+	''' Sequential Recombination Algorithm '''
+
+	def __init__(self): pass
+
 	def launch(self, momenta, cut_off=None):
 		d = self.distance(momenta)	# Distance between particles for i!=j & beam distance on the diagonal
 		jets = []			# Table of Jet found by the algorithm
@@ -60,7 +67,7 @@ class SRA:
 				momenta, d = self.merge(momenta, d, argDmin[0], argDmin[1])
 
 		return jets
-
+ 
 
 class SRA_trivial(SRA):
 	''' SRA using the Trivial (Minkowski) metric '''
@@ -95,18 +102,23 @@ class SRAG(SRA):
 		self.alpha = alpha		# exponent used for the transverse momentum
 		self.R = R			# radius parameter
 
+	def delta(self, momenta, index=None):
+		azimuth = np.array(momenta.phi())
+		rapidity = np.array(momenta.theta_cm())
+		if index is None:
+			return ((azimuth-azimuth.T)**2+(rapidity-rapidity.T)**2)/self.R/self.R
+		else:
+			return ((azimuth[index]-azimuth)**2+(rapidity[index]-rapidity)**2)/self.R/self.R
+
 	def beamDistance(self, momenta):
 		return np.array(momenta.pt2()**self.alpha)
 
 	def distance(self, momenta, index=None):
 		kt = self.beamDistance(momenta)
-		azimuth = np.array(momenta.phi())
-		rapidity = np.array(momenta.theta_cm())
-		rapidity = np.where(rapidity<0, rapidity+math.pi, rapidity)
 		if index is None:
-			d = np.minimum(kt, kt.T)*((azimuth-azimuth.T)**2+np.log(rapidity/rapidity.T)**2)/self.R/self.R + np.diag(kt.reshape(-1))
+			d = np.minimum(kt, kt.T)*self.delta(momenta) + np.diag(kt.reshape(-1))
 		else:
-			d = np.minimum(kt[index], kt)*((azimuth[index]-azimuth)**2+np.log(rapidity[index]/rapidity)**2)/self.R/self.R
+			d = np.minimum(kt[index], kt)*self.delta(momenta, index)
 			d[index] = kt[index]
 			d = d.reshape(-1)
 
@@ -118,6 +130,44 @@ class SRAG(SRA):
 		else:
 			return False
 
+class FJA(SRAG):
+	''' FastJet Algorithm '''
+
+	def __init__(self, alpha=1., R=1.):
+		self.alpha = alpha		# exponent used for the transverse momentum
+		self.R = R			# radius parameter
+
+	def nearest_neighbour(self, momenta):
+		delta = self.delta(momenta, 0).reshape(-1)
+		g_i = np.where(delta<1)
+		kt = self.beamDistance(momenta[g_i]).reshape(-1)
+		d_i = np.minimum(kt, kt[0])*delta[g_i]
+		d_i[0] = kt[0]
+
+		return d_i, g_i[0]
+
+	def merge(self, momenta, d, i, j):
+		momenta[i] = momenta[i]+momenta[j]
+		momenta = self.erase_momentum(momenta, j)
+		d_i, g_i = self.nearest_neighbour(momenta)
+	
+		return momenta, d_i, g_i
+
+	def launch(self, momenta, cut_off=None):
+		jets = []
+		while momenta.shape[0]>0:
+			d_i, g_i = self.nearest_neighbour(momenta)
+			while d_i.shape[0]>0:
+				argDmin = np.argmin(d_i)
+				if argDmin==0:
+					if self.cut_off(momenta[g_i[argDmin]], cut_off):
+						jets.append(momenta[g_i[argDmin]]) 	# add it to the list
+					momenta = self.erase_momentum(momenta, g_i[argDmin])		# delete the corespounding distance
+					d_i = np.delete(d_i, argDmin)
+				else:
+					momenta, d_i, g_i = self.merge(momenta, d_i, 0, g_i[argDmin])
+		
+		return jets			
 
 ##########################################
 
@@ -159,6 +209,7 @@ def test_algorithms(ja):
 	pl.show()
 
 #ja = SRAG(R=1.)
+#ja = FJA()
 #test_algorithms(ja)
 
 
