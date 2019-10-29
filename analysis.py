@@ -12,6 +12,18 @@ def jet_E_max(jets):
 	
 	return np.max(E)
 
+def fit(y, x):
+	n = len(y)
+	xy = np.dot(x, y)
+	x1 = np.sum(x)
+	y1 = np.sum(y)
+	x2 = np.dot(x,x)
+	delta = (n*x2-x1*x1)
+	a = (n*xy-y1*x1)/delta
+	b = (x2*y1-xy*x1)/delta
+	
+	return a, b
+
 def complexity(ja, ni, nf, nstep, M, E=1.):
 	N = np.array(range(ni, nf, nstep))
 	T = np.zeros((len(N), M))
@@ -24,21 +36,18 @@ def complexity(ja, ni, nf, nstep, M, E=1.):
 			T[i,m] = T[i,m] + time.time() - t
 		i = i+1
 	T_bar = np.mean(T, axis=1)
-	#Y1 = N*np.log(N)
-	#Y2 = N**2
-	Y = N**3
-	#a1 = (T_bar[0]-T_bar[-1])/(Y1[0]-Y1[-1])
-	#a2 = (T_bar[0]-T_bar[-1])/(Y2[0]-Y2[-1])
-	a = (T_bar[0]-T_bar[-1])/(Y[0]-Y[-1])
-	#b1 = (T_bar[0]+T_bar[-1] - a1*(Y1[0]+Y1[-1]))*0.5
-	#b2 = (T_bar[0]+T_bar[-1] - a2*(Y2[0]+Y2[-1]))*0.5
-	b = (T_bar[0]+T_bar[-1] - a*(Y[0]+Y[-1]))*0.5
+	Y1 = N*np.log(N)
+	Y2 = N**2
+	#Y = N**3
+	a1, b1 = fit(T_bar, Y1)
+	a2, b2 = fit(T_bar, Y2)
+	#a, b = fit(T_bar, Y)
 	pl.plot(N, T[:,0], 'b.', label='T(N)')	
 	pl.plot(N, T[:,1:], 'b.')
 	pl.plot(N, T_bar, 'ro', label='<T(N)>')
-	#pl.plot(N, a1*Y1+b1, label='O(Nln(N))')
-	#pl.plot(N, a2*Y2+b2, 'g-', label='O(N$^2$)')
-	pl.plot(N, a*Y+b, label='O(N$^3$)')
+	pl.plot(N, a1*Y1+b1, label='O(Nln(N))')
+	pl.plot(N, a2*Y2+b2, 'g-', label='O(N$^2$)')
+	#pl.plot(N, a*Y+b, label='O(N$^3$)')
 	pl.xlabel('N')
 	pl.ylabel('T')
 	pl.legend()
@@ -109,7 +118,7 @@ def IRC_visual(ja, N, n, n_, N_split, N_emission):
 	pl.show()
 	
 
-ja = sra.SRAG()	# Jet algorithm
+ja = sra.FJA()	# Jet algorithm
 
 complexity(ja, 100, 1000, 100, 10)
 #test_IR_safety(ja, 100, 3, 100, 10)
