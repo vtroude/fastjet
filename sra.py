@@ -49,15 +49,26 @@ class JA:
 	
 		return momenta, d
 
+	def plot(self, jet, momenta):
+		if len(jet)>0:
+			momenta.add(self.list_to_momentum(jet)).plot()
+		else:
+			momenta.plot()
+
 class SRA(JA):
 	''' Sequential Recombination Algorithm '''
 
 	def __init__(self): pass
 
-	def launch(self, momenta, cut_off=None):
+	def launch(self, momenta, cut_off=None, show=False):
 		d = self.distance(momenta)	# Distance between particles for i!=j & beam distance on the diagonal
 		jets = []			# Table of Jet found by the algorithm
+		if show:
+			step = int(momenta.shape[0]/4)
+			i=0
 		while momenta.shape[0]>0:	# While the momentum table is not empty
+			if show and i%step==0:
+				self.plot(jets, momenta)
 			argDmin = np.unravel_index(np.argmin(d, axis=None), d.shape)
 			if argDmin[0]==argDmin[1]:	# Beam distance is the minimum
 				if self.cut_off(momenta[argDmin[0]], cut_off):
@@ -65,6 +76,9 @@ class SRA(JA):
 				momenta, d = self.erase(momenta, d, argDmin[0])		# delete the corespounding distance
 			else:
 				momenta, d = self.merge(momenta, d, argDmin[0], argDmin[1])
+			if show:
+					i=i+1
+			
 
 		return jets
  
@@ -153,11 +167,16 @@ class FJA(SRAG):
 	
 		return momenta, d_i, g_i
 
-	def launch(self, momenta, cut_off=None):
+	def launch(self, momenta, cut_off=None, show=False):
 		jets = []
+		if show:
+			step = int(momenta.shape[0]/4)
+			i=0
 		while momenta.shape[0]>0:
 			d_i, g_i = self.nearest_neighbour(momenta)
 			while d_i.shape[0]>0:
+				if show and i%step==0:
+					self.plot(jets, momenta)
 				argDmin = np.argmin(d_i)
 				if argDmin==0:
 					if self.cut_off(momenta[g_i[argDmin]], cut_off):
@@ -166,7 +185,9 @@ class FJA(SRAG):
 					d_i = np.delete(d_i, argDmin)
 				else:
 					momenta, d_i, g_i = self.merge(momenta, d_i, 0, g_i[argDmin])
-		
+				if show:
+					i=i+1
+
 		return jets			
 
 ##########################################
@@ -178,7 +199,6 @@ def test_algorithms(ja):
 	phi = 2.*math.pi/3.
 	P = momentum.Momentum(np.array([[1.,0.,0.], [math.cos(phi), math.sin(phi), 0.], [math.cos(phi*2.), math.sin(phi*2.), 0.]]))
 	P.plot()
-	pl.show()
 	print 'Momenta'
 	print P
 	print 
@@ -188,14 +208,12 @@ def test_algorithms(ja):
 		print jets[n]
 	print
 	ja.list_to_momentum(jets).plot()
-	pl.show()
 	p = P
 	for n in range(10):
 		p = p.split(0.01)
 	for n in range(10):
-		p = p.emission(0.005)
+		p = p.emission(0.0001)
 	p.plot()
-	pl.show()
 	print 'New momenta'
 	print p
 	print np.sum(p, axis=0)
@@ -208,9 +226,13 @@ def test_algorithms(ja):
 	ja.list_to_momentum(jets_new).plot()
 	pl.show()
 
-#ja = SRAG(R=1.)
-#ja = FJA()
+def test(ja, N):
+	ja.list_to_momentum(ja.launch(momentum.momentum_generator(float(N),N), show=True)).plot()
+	pl.show()
+
+#ja = SRAG(R=1.5)
 #test_algorithms(ja)
+#test(ja, 50)
 
 
 

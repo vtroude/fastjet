@@ -1,0 +1,572 @@
+\documentclass{report}
+% Change "article" to "report" to get rid of page number on title page
+\usepackage{amsmath,amsfonts,amsthm,amssymb}
+\usepackage{subcaption}
+\usepackage{caption}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{extramarks}
+\usepackage{chngpage}
+\usepackage{soul}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx,float,wrapfig}
+\usepackage{ifthen}
+\usepackage{listings}
+\usepackage{courier}
+
+
+%   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+%
+%   Here put your info (name, due date, title etc).
+%   the rest should be left unchanged.
+%
+%
+%
+%   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+% Homework Specific Information
+\newcommand{\hmwkTitle}{FastJet algorithm}
+\newcommand{\hmwkSubTitle}{}
+\newcommand{\hmwkDueDate}{October, 2019}
+\newcommand{\hmwkClass}{Proseminar}
+\newcommand{\hmwkClassTime}{}
+\newcommand{\hmwkClassInstructor}{}
+
+
+\newcommand{\hmwkAuthorName}{Virgile TROUDE}
+%
+%
+
+% In case you need to adjust margins:
+\topmargin=-0.45in      %
+\evensidemargin=0in     %
+\oddsidemargin=0in      %
+\textwidth=6.5in        %
+\textheight=9.5in       %
+\headsep=0.25in         %
+
+% This is the color used for  comments below
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0}
+
+% For faster processing, load Matlab syntax for listings
+\lstloadlanguages{Matlab}%
+\lstset{language=Matlab,                        % Use MATLAB
+        frame=single,                           % Single frame around code
+        basicstyle=\small\ttfamily,             % Use small true type font
+        keywordstyle=[1]\color{Blue}\bf,        % MATLAB functions bold and blue
+        keywordstyle=[2]\color{Purple},         % MATLAB function arguments purple
+        keywordstyle=[3]\color{Blue}\underbar,  % User functions underlined and blue
+        identifierstyle=,                       % Nothing special about identifiers
+                                                % Comments small dark green courier
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small,
+        stringstyle=\color{Purple},             % Strings are purple
+        showstringspaces=false,                 % Don't put marks in string spaces
+        tabsize=3,                              % 5 spaces per tab
+        %
+        %%% Put standard MATLAB functions not included in the default
+        %%% language here
+        morekeywords={xlim,ylim,var,alpha,factorial,poissrnd,normpdf,normcdf},
+        %
+        %%% Put MATLAB function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        %%% Put user defined functions here
+        morekeywords=[3]{FindESS, homework_example},
+        %
+        morecomment=[l][\color{Blue}]{...},     % Line continuation (...) like blue comment
+        numbers=left,                           % Line numbers on left
+        firstnumber=1,                          % Line numbers start with line 1
+        numberstyle=\tiny\color{Blue},          % Line numbers are blue
+        stepnumber=1                        % Line numbers go in steps of 5
+        }
+
+% Setup the header and footer
+\pagestyle{fancy}                                                       %
+\lhead{\hmwkAuthorName}                                                 %
+%\chead{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle}  %
+\rhead{\hmwkClass\ : \hmwkTitle}  %
+%\rhead{\firstxmark}                                                     %
+\lfoot{\lastxmark}                                                      %
+\cfoot{}                                                                %
+\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}}                  %
+\renewcommand\headrulewidth{0.4pt}                                      %
+\renewcommand\footrulewidth{0.4pt}                                      %
+
+% This is used to trace down (pin point) problems
+% in latexing a document:
+%\tracingall
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some tools
+\newcommand{\enterProblemHeader}[1]{\nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak%
+                                    \nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak}%
+\newcommand{\exitProblemHeader}[1]{\nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak%
+                                   \nobreak\extramarks{#1}{}\nobreak}%
+
+\newlength{\labelLength}
+\newcommand{\labelAnswer}[2]
+  {\settowidth{\labelLength}{#1}%
+   \addtolength{\labelLength}{0.25in}%
+   \changetext{}{-\labelLength}{}{}{}%
+   \noindent\fbox{\begin{minipage}[c]{\columnwidth}#2\end{minipage}}%
+   \marginpar{\fbox{#1}}%
+
+   % We put the blank space above in order to make sure this
+   % \marginpar gets correctly placed.
+   \changetext{}{+\labelLength}{}{}{}}%
+
+\setcounter{secnumdepth}{0}
+\newcommand{\homeworkProblemName}{}%
+\newcounter{homeworkProblemCounter}%
+\newenvironment{homeworkProblem}[1][Problem \arabic{homeworkProblemCounter}]%
+  {\stepcounter{homeworkProblemCounter}%
+   \renewcommand{\homeworkProblemName}{#1}%
+   \section{\homeworkProblemName}%
+   \enterProblemHeader{\homeworkProblemName}}%
+  {\exitProblemHeader{\homeworkProblemName}}%
+
+\newcommand{\problemAnswer}[1]
+  {\noindent\fbox{\begin{minipage}[c]{\columnwidth}#1\end{minipage}}}%
+
+\newcommand{\problemLAnswer}[1]
+  {\labelAnswer{\homeworkProblemName}{#1}}
+
+\newcommand{\homeworkSectionName}{}%
+\newlength{\homeworkSectionLabelLength}{}%
+\newenvironment{homeworkSection}[1]%
+  {% We put this space here to make sure we're not connected to the above.
+   % Otherwise the changetext can do funny things to the other margin
+
+   \renewcommand{\homeworkSectionName}{#1}%
+   \settowidth{\homeworkSectionLabelLength}{\textwidth}%
+   \addtolength{\homeworkSectionLabelLength}{0.25in}%
+   \changetext{}{-\homeworkSectionLabelLength}{}{}{}%
+   \subsection{\homeworkSectionName}%
+   \enterProblemHeader{\homeworkProblemName\ [\homeworkSectionName]}}%
+  {\enterProblemHeader{\homeworkProblemName}%
+
+   % We put the blank space above in order to make sure this margin
+   % change doesn't happen too soon (otherwise \sectionAnswer's can
+   % get ugly about their \marginpar placement.
+   \changetext{}{+\homeworkSectionLabelLength}{}{}{}}%
+
+\newcommand{\sectionAnswer}[1]
+  {% We put this space here to make sure we're disconnected from the previous
+   % passage
+
+   \noindent\fbox{\begin{minipage}[c]{\columnwidth}#1\end{minipage}}%
+   \enterProblemHeader{\homeworkProblemName}\exitProblemHeader{\homeworkProblemName}%
+   \marginpar{\fbox{\homeworkSectionName}}%
+
+   % We put the blank space above in order to make sure this
+   % \marginpar gets correctly placed.
+   }%
+
+%%% I think \captionwidth (commented out below) can go away
+%%%
+%% Edits the caption width
+%\newcommand{\captionwidth}[1]{%
+%  \dimen0=\columnwidth   \advance\dimen0 by-#1\relax
+%  \divide\dimen0 by2
+%  \advance\leftskip by\dimen0
+%  \advance\rightskip by\dimen0
+%}
+
+% Includes a figure
+% The first parameter is the label, which is also the name of the figure
+%   with or without the extension (e.g., .eps, .fig, .png, .gif, etc.)
+%   IF NO EXTENSION IS GIVEN, LaTeX will look for the most appropriate one.
+%   This means that if a DVI (or PS) is being produced, it will look for
+%   an eps. If a PDF is being produced, it will look for nearly anything
+%   else (gif, jpg, png, et cetera). Because of this, when I generate figures
+%   I typically generate an eps and a png to allow me the most flexibility
+%   when rendering my document.
+% The second parameter is the width of the figure normalized to column width
+%   (e.g. 0.5 for half a column, 0.75 for 75% of the column)
+% The third parameter is the caption.
+\newcommand{\scalefig}[3]{
+  \begin{figure}[ht!]
+    % Requires \usepackage{graphicx}
+    \centering
+    \includegraphics[width=#2\columnwidth]{#1}
+    %%% I think \captionwidth (see above) can go away as long as
+    %%% \centering is above
+    %\captionwidth{#2\columnwidth}%
+    \caption{#3}
+    \label{#1}
+  \end{figure}}
+
+% Includes a MATLAB script.
+% The first parameter is the label, which also is the name of the script
+%   without the .m.
+% The second parameter is the optional caption.
+\newcommand{\matlabscript}[2]
+  {\begin{itemize}\item[]\lstinputlisting[caption=#2,label=#1]{#1.m}\end{itemize}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Make title
+%\title{\vspace{2in}\textmd{\textbf{\hmwkClass:\ \hmwkTitle\ifthenelse{\equal{\hmwkSubTitle}{}}{}{\\\hmwkSubTitle}}}\\\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\\vspace{0.1in}\large{\textit{\hmwkClassInstructor\ \hmwkClassTime}}\vspace{3in}}
+\title{\vspace{2in}\textmd{\textbf{\hmwkClass:\ \hmwkTitle\ifthenelse{\equal{\hmwkSubTitle}{}}{}{\\\hmwkSubTitle}}}\\\normalsize\vspace{0.1in}\small{Due\ on\ \hmwkDueDate}\\\vspace{0.1in}\large{\textit{ \hmwkClassTime}}\vspace{3in}}
+\date{}
+\author{\textbf{\hmwkAuthorName}}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\begin{spacing}{1.1}
+\maketitle
+% Uncomment the \tableofcontents and \newpage lines to get a Contents page
+% Uncomment the \setcounter line as well if you do NOT want subsections
+%       listed in Contents
+%\setcounter{tocdepth}{1}
+\newpage
+\tableofcontents
+\newpage
+
+% When problems are long, it may be desirable to put a \newpage or a
+% \clearpage before each homeworkProblem environment
+
+\newpage
+
+\begin{homeworkProblem}[Test algorithm]
+
+  \begin{homeworkSection}{k$_t$-algorithm}
+	
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{test_kt_p}
+		\caption{Initial configuration}
+		\label{test_kt_p}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{test_kt_j}
+		\caption{Jet configuration}
+		\label{test_kt_j}
+   	\end{subfigure}
+    	\caption{Test of the k$_t$-algorithm, where the initial configuration should give a final configuration with three jets for R=1}
+    	\label{test_kt}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t0}
+		\caption{}
+		\label{kt_t0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t1}
+		\caption{}
+		\label{kt_t1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t2}
+		\caption{}
+		\label{kt_t2}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t3}
+		\caption{}
+		\label{kt_t3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t4}
+		\caption{}
+		\label{kt_t4}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_t5}
+		\caption{}
+		\label{kt_t5}
+   	\end{subfigure}
+    	\caption{Evolution of the momentum configuration during the k$_t$-algorithm with R=1.5 and N=50 momentum, from (a) to (f)}
+    	\label{fja_t}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+  \begin{homeworkSection}{FastJet algorithm}
+	
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{test_fja_p}
+		\caption{Initial configuration}
+		\label{test_fja_p}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{test_fja_j}
+		\caption{Jet configuration}
+		\label{test_fja_j}
+   	\end{subfigure}
+    	\caption{Test of the FastJet algorithm, where the initial configuration should give a final configuration with three jets for R=1}
+    	\label{test_fja}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t0}
+		\caption{}
+		\label{fja_t0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t1}
+		\caption{}
+		\label{fja_t1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t2}
+		\caption{}
+		\label{fja_t2}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t3}
+		\caption{}
+		\label{fja_t3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t4}
+		\caption{}
+		\label{fja_t4}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_t5}
+		\caption{}
+		\label{fja_t5}
+   	\end{subfigure}
+    	\caption{Evolution of the momentum configuration during the FastJet algorithm with R=1.5 and N=50 momentum, from (a) to (f)}
+    	\label{fja_t}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\newpage
+
+\begin{homeworkProblem}[IRC-safety]
+
+  \begin{homeworkSection}{k$_t$-algorithm}
+	
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_n}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_ir_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_ir_e}
+   	\end{subfigure}
+    	\caption{IR-safety of k$_t$-algorithm for N=100 momentum and R=1}
+    	\label{kt_ir}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_n}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_c_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_c_e}
+   	\end{subfigure}
+    	\caption{C-safety of k$_t$-algorithm for N=100 momentum and R=1}
+    	\label{kt_c}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p0}
+		\caption{Initial momentum configuration}
+		\label{kt_p0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j0}
+		\caption{Initial jet configuration}
+		\label{kt_j0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p_k=3_16e_01}
+		\caption{Momentum after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{kt_p_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j_k=3_16e_01}
+		\caption{Jet after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{kt_j_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p_k=5_81e_03}
+		\caption{Momentum after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{kt_p_k2}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j_k=5_81e_03}
+		\caption{Jet after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{kt_j_k2}
+   	\end{subfigure}
+    	\caption{Visual representation of the IRC-safety for N=5 initial momentum when 10 splitting followed by 10 emissions happens with a coefficent k, for the k$_t$-algorithm with R=1}
+    	\label{kt_irc}
+  	\end{figure}
+  
+  \end{homeworkSection}
+
+  \begin{homeworkSection}{FastJet algorithm}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_ir_n}
+		\caption{Observable: Number of jet (N)}
+		\label{fja_ir_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_ir_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{fja_ir_e}
+   	\end{subfigure}
+    	\caption{IR-safety of FastJet algorithm for N=100 momentum and R=1}
+    	\label{fja_ir}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_c_n}
+		\caption{Observable: Number of jet (N)}
+		\label{fja_c_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_c_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{fja_c_e}
+   	\end{subfigure}
+    	\caption{C-safety of FastJet algorithm for N=100 momentum and R=1}
+    	\label{fja_c}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_p0}
+		\caption{Initial momentum configuration}
+		\label{fja_p0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_j0}
+		\caption{Initial jet configuration}
+		\label{fja_j0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_p_k=3_16e_01}
+		\caption{Momentum after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{fja_p_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_j_k=3_16e_01}
+		\caption{Jet after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{fja_j_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_p_k=5_81e_03}
+		\caption{Momentum after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{fja_p_k2}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_j_k=5_81e_03}
+		\caption{Jet after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{fja_j_k2}
+   	\end{subfigure}
+    	\caption{Visual representation of the IRC-safety for N=5 initial momentum when 10 splitting followed by 10 emissions happens with a coefficent k, for the FastJet algorithm with R=1}
+    	\label{fja_irc}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\begin{homeworkProblem}[Time Complexity]
+
+  \begin{homeworkSection}{k$_t$-algorithm}
+
+	\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{kt_complexity}
+    	\caption{Time complexity of the k$_t$-algorithm with N=100 momentum and R=1}
+    	\label{kt_complexity}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+  \begin{homeworkSection}{FastJet algorithm}
+
+	\begin{figure}[H]
+	\centering
+	\includegraphics[width=\textwidth]{fja_complexity}
+    	\caption{Time complexity of the FastJet algorithm with N=100 momentum and R=1}
+    	\label{fja_complexity}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\newpage
+
+\begin{thebibliography}{99}
+\bibitem{}
+\end{thebibliography}
+
+\end{spacing}
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

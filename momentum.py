@@ -111,23 +111,31 @@ class Momentum(np.ndarray):
 		
 		return a
 
-	def emission(self, k=None, E=None):
+	def unitary(self):
 		if self.ndim>1:
 			n = np.random.rand(self.shape[1]-1)
 		else:
 			n = np.random.rand(self.shape[0]-1)
-		n = n/np.sqrt(np.sum(n**2))
+		
+		return n/np.sqrt(np.sum(n**2))
+
+	def index_emission(self, E=None):
+		if E is None:
+			E = np.sum(self[:,0])/self.shape[0]
+		i = np.where(self[:,0]>E)
+		if len(i)>1:
+			return i[np.random.randint(0,i.shape[0])]
+		else:
+			return np.argmax(self[:,0])
+
+	def emission(self, k=None, E=None, n=None, i=None):
+		if n is None:
+			n = self.unitary()
 		if k is None:
 			k = np.random.rand()
-		if self.ndim>1:
-			if E is None:
-				E = np.sum(self[:,0])/self.shape[0]
-			i = np.where(self[:,0]>E)
-			if len(i)>1:
-				i = i[np.random.randint(0,i.shape[0])]
-			else:
-				i = np.argmax(self[:,0])
-		else:
+		if i is None and self.ndim>1:
+			i = self.index_emission(E)
+		elif self.ndim==1:
 			i = 0
 			self = self.reshape(-1, self.shape[0])
 		k = k*self[i,0]
@@ -147,18 +155,20 @@ class Momentum(np.ndarray):
 		
 		return n/np.sqrt(np.sum(n**2))
 
-	def split(self, b=None):
-		a = 0.8*np.random.rand()+0.1
+	def split(self, b=None, n=None, a=None, i=None):
+		if a is None:
+			a = 0.8*np.random.rand()+0.1
 		if b is None:
 			b = np.random.rand()
 		b = b*(a*(1.-a))**0.5
-		if self.ndim>1:
+		if i is None and self.ndim>1:
 			i = np.random.randint(0, self.shape[0])
-		else:
+		elif self.ndim==1:
 			self = self.reshape(-1,self.shape[0])
 			i = 0
 		b = b*self[i,0]
-		n = self.normal_to(self[i,1:])
+		if n is None:
+			n = self.normal_to(self[i,1:])
 		p1 = Momentum(a*self[i,1:]+b*n)
 		p2 = Momentum((1.-a)*self[i,1:]-b*n)
 
@@ -275,8 +285,7 @@ def test_generator():
 	print M.sum(axis=0)
 
 def plot_momentum():
-	M = momentum_generator(1,10)
-	M.plot()
+	momentum_generator(1,3).plot()
 	pl.show()
 	
 
