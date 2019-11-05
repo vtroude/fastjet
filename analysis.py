@@ -30,7 +30,7 @@ def complexity(ja, ni, nf, nstep, M, E=1.):
 	i = 0
 	for n in N:
 		for m in range(M):
-			momenta = momentum.momentum_generator(E, n)
+			momenta = momentum.momentum_generator(n*E, n)
 			t = time.time()
 			_ = ja.launch(momenta)
 			T[i,m] = T[i,m] + time.time() - t
@@ -53,16 +53,20 @@ def complexity(ja, ni, nf, nstep, M, E=1.):
 	pl.legend()
 	pl.show()
 
-def test_IR_safety(ja, N, M, n, n_):
+def test_IR_safety(ja, N, M, n, n_, K=None):
 	observable = np.zeros((M, n))
 	k = 10.**(-1*np.geomspace(0.5, n_, num=n))
 	for m in range(M):
 		momenta = momentum.momentum_generator(1, N)
 		N_j0 = float(len(ja.launch(momenta)))
-		#E_j0 = jet_E_max(ja.launch(momenta))	
+		#E_j0 = jet_E_max(ja.launch(momenta))
 		for i in range(n):
-			observable[m,i] = float(len(ja.launch(momenta.emission(k[i]))))/N_j0
-			#observable[m,i] = jet_E_max(ja.launch(momenta.emission(k[i])))/E_j0
+			P = momenta.emission(k[i])
+			if K is not None:
+				for t in range(1,K):
+					P = P.emission(k[i])
+			observable[m,i] = float(len(ja.launch(P)))/N_j0
+			#observable[m,i] = jet_E_max(ja.launch(P))/E_j0
 		pl.plot(np.log10(k), observable[m], '.')
 	pl.xlabel('log(k)')
 	pl.ylabel('N/N_0')
@@ -70,7 +74,7 @@ def test_IR_safety(ja, N, M, n, n_):
 	pl.title('IR-Safety')	
 	pl.show()
 		
-def test_C_safety(ja, N, M, n, n_):
+def test_C_safety(ja, N, M, n, n_, K=None):
 	observable = np.zeros((M, n))
 	k = 10.**(-1*np.geomspace(0.01, n_, num=n))
 	for m in range(M):
@@ -78,6 +82,10 @@ def test_C_safety(ja, N, M, n, n_):
 		#N_j0 = len(ja.launch(momenta))
 		E_j0 = jet_E_max(ja.launch(momenta))
 		for i in range(n):
+			P = momenta.split(k[i])
+			if K is not None:
+				for t in range(1,K):
+					P = P.split(k[i])
 			#observable[m,i] = float(len(ja.launch(momenta.split(k[i]))))/N_j0
 			observable[m,i] = jet_E_max(ja.launch(momenta.split(k[i])))/E_j0
 		pl.plot(np.log10(k), observable[m], '.')
@@ -120,9 +128,9 @@ def IRC_visual(ja, N, n, n_, N_split, N_emission):
 
 ja = sra.FJA()	# Jet algorithm
 
-complexity(ja, 100, 1000, 100, 10)
-#test_IR_safety(ja, 100, 3, 100, 10)
-#test_C_safety(ja, 100, 3, 100, 2.)
+complexity(ja, 10, 1000, 100, 10)
+#test_IR_safety(ja, 100, 3, 100, 10, 3)
+#test_C_safety(ja, 100, 3, 100, 1., 3)
 #IRC_visual(ja, 5, 3, 10, 10, 10)
 
 

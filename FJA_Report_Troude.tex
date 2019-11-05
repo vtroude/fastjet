@@ -232,10 +232,118 @@
 
 \newpage
 
-\begin{homeworkProblem}[Test algorithm]
+\begin{homeworkProblem}[Sequential Recombination Algorithm]
 
-  \begin{homeworkSection}{k$_t$-algorithm}
-	
+\label{sra} The general from of the Algorithm, considering N-particles with momenta (k$_1$,...,k$_N$) take the following forms:
+
+1 - For all pairs of particles (i,j) compute the distance:
+
+\begin{equation}
+d_{ij} = min\{k_{ti}^{2\alpha},k_{tj}^{2\alpha}\}\frac{\Delta_{ij}^2}{R^2}
+\end{equation}
+
+2 - For all particle i compute the beam distance:
+
+\begin{equation}
+d_{iB} = k_{ti}^{2\alpha}
+\end{equation}
+
+3 - Find the minimal distance:
+
+\begin{equation}
+d_{min} = min\{min_{(i,j)}\,d_{ij}, min_i\,d_{iB}\}
+\end{equation}
+
+4a - If d$_{min}$ is a distance between a pair of particle (i,j), merge the two into a single particle:
+
+\begin{equation}
+(k_1,..., k_i,..., k_j,...) \rightarrow (k_1,..., k_i+k_j,..., \widehat{k_j},...)
+\end{equation}
+
+4b - Else if d$_{min}$ is a distance between the beam and a particle i, the particle i is a final jet, and remove it from the list:
+
+\begin{equation}
+(k_1,..., k_i,...) \rightarrow (k_1,..., \widehat{k_i},...)
+\end{equation}
+
+5 - Repeat from step 1 until no particles are left.
+
+
+Where $\Delta_{ij}$ = ($\mu_i$-$\mu_j$)$^2$+($\phi_i$-$\phi_j$)$^2$, R and $\alpha$ are parameters and k$_{ti}$, $\mu_i$ and $\phi_i$ are respectively the transverse momentum, rapidity and azimuth angle of particle i. The notation $\widehat{k_i}$ means that the i$^{th}$-momentum is removed from the list.
+
+
+When the algorithm end, their is M-jets with momenta (p$_1$,...,p$_M$).
+
+  \begin{homeworkSection}{Complexity}
+
+	The complexity of a such algorithm is in $\mathcal{O}$(N$^3$) where N is the number of momentum before clustering. This is due that at the fisrt step of the algorithm we do a search in a table of size N$\times$N, which is in $\mathcal{O}$(N$^2$), then merge the momentum or remove them from the list is in $\mathcal{O}$(1) and to repeat all these steps until no particles are left is in $\mathcal{O}$(N), so $\mathcal{O}$(N$^2$)$\times$$\mathcal{O}$(N)=$\mathcal{O}$(N$^3$).
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\newpage
+
+\begin{homeworkProblem}[IRC-safety]
+\label{irc}
+  \begin{homeworkSection}{Definition: IRC-safe}
+
+	A such algorithm is IRC-safe if it fulfilled the following properties:
+
+\begin{itemize}
+\item IR-safe (Infrared safe): Configuration must not change when adding a further soft particle. For a jet algorithm this means that the number of jet and their momentum still the same.
+\item C-safe (Collinear safe): Configuration does not change when substituing one particle with two collinear particles.
+\end{itemize}
+
+  \end{homeworkSection}
+
+  \begin{homeworkSection}{IR-safety Proof}
+
+\begin{itemize}
+\item Jets number conservation: 
+
+Now consider that the N$^{th}$ particule emitted a soft particule such as k$_N$=k$_h$+k$_s$ (h: hard; s: soft), where k$_h^2\gg$ k$_s^2$ by definition. If the soft particle is collienear to the hard particle, the situation is the same than above and the proof is done. Otherwise if $\Delta_{hs}^2>$ 0 it is easy to imagine a case in wich the algorithm is IR-unsafe. Consider that at a new step of the algorithm k$_s^{2\alpha}$ = min$_i$ k$_i^{2\alpha}$ and $\Delta_{is}^2>$ R$^2$ for all i$\neq$s, so the soft particle form a jet and the algorithm end with M+1-jets wich means that the algorithm is IR-unsafe. To correct this, it is possible to add a momentum cut-off p$_{cut}$ to the algorithm such that if there is an observe jet i with p$_i<$ p$_{cut}$, then we keep the jet in the list and we merge it with an other one denoted j, where d$_{ij}$ = min$_{l}$ d$_{il}$ or the soft particle must be removed from the list.
+
+\item Momentum Conservation:
+
+Let consider a hard particle with momentum K such that it is contained in a jet with momentum P=K+$\Delta$P (where $\Delta$P represented the other momenta). If we consider that the hard particle emitted a soft particle k$_s$ such that K$^2\gg$ k$_s^2$, then the momentum of the corresponding jet after emission is P*=(K-k$_s$)+$\Delta$P*.
+
+\begin{align}
+\frac{(P-P*)^2}{K^2} &= \frac{(\Delta P - \Delta P*)^2}{K^2} + 2\frac{k_s^2}{K^2}(\frac{k_s}{k_s^2})(\Delta P - \Delta P*) + \frac{k_s^2}{K^2} \\
+&\approx \frac{(\Delta P - \Delta P*)^2}{K^2} \quad \text{since} \quad  \frac{k_s^2}{K^2}\approx 0 \quad \text{in the soft limit} \\
+&\approx 0
+\end{align}
+
+Since in the soft limit, the momentum K changed infinitesimally, so the other momenta that formed the jet are approximately the same (i.e. $\Delta$P $\approx\Delta$P*, up to the order of magnitude considered). So P=P* in the soft limit, wich means that the momentum of the Jets are conserved after the emission of a soft particle.
+
+\item Special case of the k$_t$-algorithm:
+
+For the special case $\alpha$=1, hard particles will tend to cluster with soft particles long before they cluster among themselves. In the soft limit, the momentum of the jet that contains the hard particle is the same. In this case there is no need for a cut-off. If there exists a particle i such that $\Delta_is^2<$ R$^2$ is minimal, then merge the soft particle with the particle i. Otherwise, if the minimal distance is the one between the soft particle and the beam, then merge it with the beam (wich is equivalent to remove it from the list).
+\end{itemize}
+
+  \end{homeworkSection}
+
+  \begin{homeworkSection}{C-safety Proof}
+
+Consider that the algorithm run on N-particles with momenta (k$_1$,...,k$_N$) and obtained at the end M-jets with momenta (p$_1$,...,p$_M$). Without loss of generality, consider that the N$^{th}$ particle split into two collinear particles denoted a and b, so $\Delta_{ab}^2\approx$0, due to the definition of the rapidity and azimuth angle. So d$_{min}$ = d$_{ab}$ and (..., k$_a$, k$_b$)$\rightarrow$(..., k$_N$=k$_a$+k$_b$, $\widehat{k_b}$) wich is the initial configuration.
+
+
+This proves that the algorithm is C-safe.
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\newpage
+
+\begin{homeworkProblem}[The k$_t$-algorithm]
+
+  The k$_t$-algorithm correspond to the SRA (Sequential Recombination Algorithm, p$\sim$\pageref{sra}), when $\alpha$=1. So it start by merging the soft-particles to the hard ones, until the distance in the $\mu\phi$-plan (rapidity and azimuth angle plan) of the appearing jet, with all the other momentum, is greater than R (where R is the hyper-parameter of the algorithm).
+
+  \begin{homeworkSection}{Test algorithm}
+
+	\label{kt_test} Once the algorithm have been implemented, let's show that its work. On the figure $\ref{test_kt}$, there is an initial configuration which should give rise to three jets (for R=1), which is what we observe.
+
 	\begin{figure}[H]
     	\centering
 	\begin{subfigure}{0.45\textwidth}
@@ -253,6 +361,8 @@
     	\caption{Test of the k$_t$-algorithm, where the initial configuration should give a final configuration with three jets for R=1}
     	\label{test_kt}
   	\end{figure}
+
+	To obtain a good visualisation of what happened when the algorithm is running, on the figure $\ref{kt_t}$ there is plots of the set of momentum along time (with N=50 and R=1.5). Such as it is predict, the soft-particles merge first with the hard ones and then the hard-particles merge with each other if there distance in the $\mu\phi-plan$ is smaller than R.
 
 	\begin{figure}[H]
     	\centering
@@ -293,13 +403,200 @@
 		\label{kt_t5}
    	\end{subfigure}
     	\caption{Evolution of the momentum configuration during the k$_t$-algorithm with R=1.5 and N=50 momentum, from (a) to (f)}
-    	\label{fja_t}
+    	\label{kt_t}
   	\end{figure}
 
   \end{homeworkSection}
 
-  \begin{homeworkSection}{FastJet algorithm}
+  \begin{homeworkSection}{Experimental proof of the IRC-safety}
+
+	The theoretical proof of the IRC-safety of the algorithm has been already done (see p~$\pageref{irc}$), but it is also interesting to show it graphically by running the algorithm before soft-emissions or collinear splitting happen and then running it again after emissions or splitting.
+
 	
+	Two observables have been considered to observe there convergences, the total number of jet observes N and the energy of the most energetic jet E. Let denote by N$_0$ and E$_0$ the values obtained when the algorithm is running before any emissions or splitting happen.
+
+	The value that is going to control the emission or the splitting range is denoted by k. And it represented the following: \label{k}
+
+\begin{itemize}
+\item Emission: If a hard particle emitted a new particle with a factor k, this means that we have:
+
+\begin{equation}
+p_\mu \rightarrow \left\{
+	\begin{array}{ll}
+		p_\mu-k_\mu \\
+		k_\mu
+	\end{array}
+\right
+\end{equation}
+
+where p$_{\mu}$ is the initial 4-momentum of the hard particle and k$_{\mu}$ is the 4-momentum of the particle emitted such that k$_\mu$=k*E(1,$\hat{n}$), where E is the energy of the initial particle and $\hat{n}$ is a unitary vector in $\mathbb{R}^3$ (which is by default initialized randomly), so we should take k$\in$(0,1).
+\item Splitting: When a splitting happens, the factor k represent the deviation of the two new particle in the normal direction of the initial momentum $\vec{p}$ (in the Euclidean space). Then we have got: 
+
+\begin{equation}
+\vec{p} \rightarrow \left\{
+	\begin{array}{ll}
+		\alpha\vec{p}+k\sqrt{\alpha(1-\alpha)}E\hat{n}_\perp \\
+		(1-\alpha)\vec{p}-k\sqrt{\alpha(1-\alpha)}E\hat{n}_\perp
+	\end{array}
+\right
+\end{equation}
+
+where $\alpha$ can be any value between 0 and 1 but to avoid any numerical error, let's take $\alpha\in$(0.1,0.9), E is the energy of the initial particle and $\hat{n}_\perp$ is a unitary vector orthogonal to $\vec{p}$ in $\mathbb{R}^3$ under the euclidean scalar product ($\alpha$ and $\hat{n}_\perp$ are by default initialized randomly).
+\end{itemize}
+
+$Rq$: This procedure for an emission and a splitting are not physical, since during an emission the energy and momentum are conserved but not the masse. For the splitting, the momentum is conserved but nether the energy or the masse. Since the goal of the project is to study the jet algorithms, the physical meaning of the interaction are not the subject and are not going to be discuss in the following parts.
+
+
+So when the value k tend to zero, the observable N and E should respectively tend to N$_0$ and E$_0$.
+
+\label{irc_kt} On figure \ref{kt_ir}, \ref{kt_c}, \ref{kt_ir_3} $\&$ \ref{kt_c_3} there are graphical illustration of the convergence of the observable when k tend to zero for both observable N and E. The different colors on the graph mean that there are different initial configuration.
+
+For the IR-safety, it is possible to observe the convergence when only one spontaneous emission happens (fig.\ref{kt_ir}) or if there is three (fig.\ref{kt_ir_3}), it is possible to observe a step convergence for the observable N and a something closer to a continuous convergence for the observable E. This is due that the observable N is an integer and when an emission, which is not soft, happens it is possible to observe one, two or three ... jets more (or less). The observable E take a continuous value, so it is normal to observe a continuous convergence, the little discontinuity observed are due to the randomness of the direction of the soft emission.
+
+For the C-safety, the convergence is present but it seems much more random than the IR-cases, this is due that the programe is built such as the value $\alpha$ is taken uniformly between 0.1 and 0.9 for each measure, which influence the measure. This is not important since we clearly observe the convergence when one splitting happens (fig.\ref{kt_c}) or three (fig.\ref{kt_c_3})
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_n}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_ir_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_ir_e}
+   	\end{subfigure}
+    	\caption{IR-safety of k$_t$-algorithm for N=100 momentum and R=1}
+    	\label{kt_ir}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_n}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_c_n}
+   	\end{subfigure}
+	\begin{subfigure}{\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_e}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_c_e}
+   	\end{subfigure}
+    	\caption{C-safety of k$_t$-algorithm for N=100 momentum and R=1}
+    	\label{kt_c}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_n_3}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_ir_n_3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_ir_e_3}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_ir_e_3}
+   	\end{subfigure}
+    	\caption{IR-safety of k$_t$-algorithm for N=100 momentum and R=1 when 3 spontaneous emission happen}
+    	\label{kt_ir_3}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_n_3}
+		\caption{Observable: Number of jet (N)}
+		\label{kt_c_n_3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_c_e_3}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{kt_c_e_3}
+   	\end{subfigure}
+    	\caption{C-safety of k$_t$-algorithm for N=100 momentum and R=1 when 3 spontaneous splitting happen}
+    	\label{kt_c_3}
+  	\end{figure}
+
+It is possible to observe visually the IRC-safety of the k$_t$-algorithm on the figure \ref{kt_irc}. To do this, it is necessary to define an initial configuration with a few momentum (here there is only five) and then applied exacly the same splitting and emissions but with a much smaller k.
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p0}
+		\caption{Initial momentum configuration}
+		\label{kt_p0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j0}
+		\caption{Initial jet configuration}
+		\label{kt_j0}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p_k=3_16e_01}
+		\caption{Momentum after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{kt_p_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j_k=3_16e_01}
+		\caption{Jet after splitting and emission with k=3.16$\times$10$^{-1}$}
+		\label{kt_j_k1}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_p_k=5_81e_03}
+		\caption{Momentum after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{kt_p_k2}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{kt_j_k=5_81e_03}
+		\caption{Jet after splitting and emission with k=5.81$\times$10$^{-3}$}
+		\label{kt_j_k2}
+   	\end{subfigure}
+    	\caption{Visual representation of the IRC-safety for N=5 initial momentum when 10 splitting followed by 10 emissions happens with a coefficent k, for the k$_t$-algorithm with R=1}
+    	\label{kt_irc}
+  	\end{figure}
+
+  \end{homeworkSection}
+
+\end{homeworkProblem}
+
+\newpage
+
+\begin{homeworkProblem}[The FastJet algorithm]
+
+To optimize the previous algorithm, it is necessary to introduce the notion of nearest neighbour (NN). For a particle i, it is possible to define the set $\mathcal{G}_i$ of it's NN, such as: $\forall j\in\mathcal{G}_i$ we have $\Delta_{ij}\leq$R$^2$ (where $\Delta_{ij}$ is define p$\sim$\pageref{sra}).
+
+Then instead to define the table d$_{ij}$ (p$\sim$\pageref{sra}) of size N$^2$, it is possible to construct the array d$_{i\mathcal{G}_i}$ of size N, so the complexity of the research part in a table is $\mathcal{O}$(N) instead of $\mathcal{O}$(N$^2$). The algorithm take the following form:
+
+1- For each particle i construct $\mathcal{G}_i$ and compute d$_{i\mathcal{G}_i}$ and d$_{iB}$.
+
+2- Find the minimal value d$_{min}$ of the d$_{i\mathcal{G}_i}$, d$_{iB}$.
+
+3- Merge or remove the particles corresponding to d$_{min}$ as appropriate.
+
+4- Update d$_{i\mathcal{G}_i}$ and d$_{iB}$. If any particles are left go to step 2.
+
+This reduce the complexity of the algorithm to $\mathcal{O}$(N$^2$).
+
+  \begin{homeworkSection}{Test algorithm}
+
+	The figure \ref{test_fja} $\&$ \ref{fja_t} are respectivly equivalent to the figure \ref{test_kt} $\&$ \ref{kt_t} but for the FastJet algorithm and the discussion is the same than for the k$_t$-algorithm (p$\sim$\pageref{kt_test}). The only difference between the clustering along time between the k$_t$-algorithm and the FastJet one, is that for the k$_t$, all the soft particle in the $\mu\phi$-plan, merge fisrt with the hard one or the other soft-particles every where in the plane, when for the FastJet algorithm the algorithm run for each particle i in his neighborhood which can be observed figure \ref{fja_t}.
+
 	\begin{figure}[H]
     	\centering
 	\begin{subfigure}{0.45\textwidth}
@@ -362,95 +659,9 @@
 
   \end{homeworkSection}
 
-\end{homeworkProblem}
+  \begin{homeworkSection}{Experimental proof of the IRC-safety}
 
-\newpage
-
-\begin{homeworkProblem}[IRC-safety]
-
-  \begin{homeworkSection}{k$_t$-algorithm}
-	
-	\begin{figure}[H]
-    	\centering
-	\begin{subfigure}{\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_ir_n}
-		\caption{Observable: Number of jet (N)}
-		\label{kt_ir_n}
-   	\end{subfigure}
-	\begin{subfigure}{\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_ir_e}
-		\caption{Observable: Energy of the most energetic jet (E)}
-		\label{kt_ir_e}
-   	\end{subfigure}
-    	\caption{IR-safety of k$_t$-algorithm for N=100 momentum and R=1}
-    	\label{kt_ir}
-  	\end{figure}
-
-	\begin{figure}[H]
-    	\centering
-	\begin{subfigure}{\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_c_n}
-		\caption{Observable: Number of jet (N)}
-		\label{kt_c_n}
-   	\end{subfigure}
-	\begin{subfigure}{\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_c_e}
-		\caption{Observable: Energy of the most energetic jet (E)}
-		\label{kt_c_e}
-   	\end{subfigure}
-    	\caption{C-safety of k$_t$-algorithm for N=100 momentum and R=1}
-    	\label{kt_c}
-  	\end{figure}
-
-	\begin{figure}[H]
-    	\centering
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_p0}
-		\caption{Initial momentum configuration}
-		\label{kt_p0}
-   	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_j0}
-		\caption{Initial jet configuration}
-		\label{kt_j0}
-   	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_p_k=3_16e_01}
-		\caption{Momentum after splitting and emission with k=3.16$\times$10$^{-1}$}
-		\label{kt_p_k1}
-   	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_j_k=3_16e_01}
-		\caption{Jet after splitting and emission with k=3.16$\times$10$^{-1}$}
-		\label{kt_j_k1}
-   	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_p_k=5_81e_03}
-		\caption{Momentum after splitting and emission with k=5.81$\times$10$^{-3}$}
-		\label{kt_p_k2}
-   	\end{subfigure}
-	\begin{subfigure}{0.45\textwidth}
-		\centering
-    		\includegraphics[width=\textwidth]{kt_j_k=5_81e_03}
-		\caption{Jet after splitting and emission with k=5.81$\times$10$^{-3}$}
-		\label{kt_j_k2}
-   	\end{subfigure}
-    	\caption{Visual representation of the IRC-safety for N=5 initial momentum when 10 splitting followed by 10 emissions happens with a coefficent k, for the k$_t$-algorithm with R=1}
-    	\label{kt_irc}
-  	\end{figure}
-  
-  \end{homeworkSection}
-
-  \begin{homeworkSection}{FastJet algorithm}
+The figures \ref{fja_ir}, \ref{fja_c}, \ref{fja_ir_3}, \ref{fja_c_3} $\&$ \ref{fja_irc} are respectivly equivalent to the figures \ref{kt_ir}, \ref{kt_c}, \ref{kt_ir_3}, \ref{kt_c_3} $\&$ \ref{kt_irc} and the discussion is the same (see p$\sim$\pageref{irc_kt}), but for the FastJEt algorithm instead of the k$_t$-algorithm.
 
 	\begin{figure}[H]
     	\centering
@@ -486,6 +697,42 @@
    	\end{subfigure}
     	\caption{C-safety of FastJet algorithm for N=100 momentum and R=1}
     	\label{fja_c}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_ir_n_3}
+		\caption{Observable: Number of jet (N)}
+		\label{fja_ir_n_3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_ir_e_3}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{fja_ir_e_3}
+   	\end{subfigure}
+    	\caption{IR-safety of FastJet algorithm for N=100 momentum and R=1 when 3 spontaneous emissions happen}
+    	\label{fja_ir_3}
+  	\end{figure}
+
+	\begin{figure}[H]
+    	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_c_n_3}
+		\caption{Observable: Number of jet (N)}
+		\label{fja_c_n_3}
+   	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\centering
+    		\includegraphics[width=\textwidth]{fja_c_e_3}
+		\caption{Observable: Energy of the most energetic jet (E)}
+		\label{fja_c_e_3}
+   	\end{subfigure}
+    	\caption{C-safety of FastJet algorithm for N=100 momentum and R=1 when 3 spontaneous splitting happen}
+    	\label{fja_c_3}
   	\end{figure}
 
 	\begin{figure}[H]
@@ -530,33 +777,34 @@
     	\label{fja_irc}
   	\end{figure}
 
+
   \end{homeworkSection}
 
 \end{homeworkProblem}
 
+\newpage
+
 \begin{homeworkProblem}[Time Complexity]
 
-  \begin{homeworkSection}{k$_t$-algorithm}
+The figures \ref{kt_complexity} $\&$ \ref{fja_complexity} are respectivly the time complexity of the k$_t$-algorithm and the FastJet algorithm in function of the number of initial momentum N.
+
+For the k$_t$-algorithm (fig.\ref{kt_complexity}) we obtain a complexity in $\mathcal{O}$(N$^3$), such as what is expected.
+
+For the FastJet algorithm (fig.\ref{fja_complexity}) the complexity is not in $\mathcal{O}$(N$^2$) but in $\mathcal{O}$(Nln(N)).This is due to an optimization in the implementation of the algorithm.
 
 	\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{kt_complexity}
-    	\caption{Time complexity of the k$_t$-algorithm with N=100 momentum and R=1}
+    	\caption{Time complexity of the k$_t$-algorithm with R=1}
     	\label{kt_complexity}
   	\end{figure}
-
-  \end{homeworkSection}
-
-  \begin{homeworkSection}{FastJet algorithm}
 
 	\begin{figure}[H]
 	\centering
 	\includegraphics[width=\textwidth]{fja_complexity}
-    	\caption{Time complexity of the FastJet algorithm with N=100 momentum and R=1}
+    	\caption{Time complexity of the FastJet algorithm with R=1}
     	\label{fja_complexity}
   	\end{figure}
-
-  \end{homeworkSection}
 
 \end{homeworkProblem}
 
