@@ -3,6 +3,7 @@ import math
 import pylab as pl
 from mpl_toolkits.mplot3d import axes3d
 from matplotlib import style
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 class Momentum(np.ndarray):
 	''' Array of Momentum in Minkowski space '''
@@ -287,11 +288,31 @@ def test_generator():
 def plot_momentum():
 	momentum_generator(1,3).plot()
 	pl.show()
+
+def test_voronoi():
+	p = momentum_generator(1,10)
+	mu_phi = np.concatenate((p.theta_cm().reshape(-1,1),p.phi().reshape(-1,1)), axis=1)
+	vor = Voronoi(mu_phi)
+	print 'Points'
+	print vor.points
+	print
+	print 'Vertices'
+	print vor.vertices
+	print
+	print 'Regions'
+	print vor.regions
+	print
+	print 'Ridge Points'
+	print vor.ridge_points
+	print
+	voronoi_plot_2d(vor)
+	pl.show()
+	
 	
 
 #test_generator()
 #plot_momentum()
-
+#test_voronoi()
 
 
 

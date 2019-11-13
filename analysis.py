@@ -126,10 +126,10 @@ def IRC_visual(ja, N, n, n_, N_split, N_emission):
 	pl.show()
 	
 
-ja = sra.FJA()	# Jet algorithm
+ja = sra.Jade(-0.00005)	# Jet algorithm
 
-complexity(ja, 10, 1000, 100, 10)
-#test_IR_safety(ja, 100, 3, 100, 10, 3)
+#complexity(ja, 10, 1000, 100, 10)
+test_IR_safety(ja, 100, 3, 100, 100, 3)
 #test_C_safety(ja, 100, 3, 100, 1., 3)
 #IRC_visual(ja, 5, 3, 10, 10, 10)
 

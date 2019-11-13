@@ -83,7 +83,7 @@ class SRA(JA):
 		return jets
  
 
-class SRA_trivial(SRA):
+class Jade(SRA):
 	''' SRA using the Trivial (Minkowski) metric '''
 
 	def __init__(self, Dbeam=0.):
@@ -94,10 +94,10 @@ class SRA_trivial(SRA):
 
 	def distance(self, momenta, index=None):
 		if index is None:
-			d = 2*momenta.dot(momenta)
+			d = -2*momenta.dot(momenta)
 			d = np.diag(self.beamDistance(momenta.shape[0]))+d-np.diag(np.diag(d))
 		else:
-			d = 2*momenta.dot(momenta[index])
+			d = -2*momenta.dot(momenta[index])
 			d[index] = self.beamDistance(1)
 
 		return d
@@ -120,9 +120,14 @@ class SRAG(SRA):
 		azimuth = np.array(momenta.phi())
 		rapidity = np.array(momenta.theta_cm())
 		if index is None:
-			return ((azimuth-azimuth.T)**2+(rapidity-rapidity.T)**2)/self.R/self.R
+			d1 = np.abs(azimuth-azimuth.T)%(2*math.pi)
+			d2 = np.abs(rapidity-rapidity.T)%(2*math.pi)
 		else:
-			return ((azimuth[index]-azimuth)**2+(rapidity[index]-rapidity)**2)/self.R/self.R
+			d1 = np.abs(azimuth[index]-azimuth)%(2*math.pi)
+			d2 = np.abs(rapidity[index]-rapidity)%(2*math.pi)
+		
+		return (d1**2+d2**2)/self.R/self.R
+
 
 	def beamDistance(self, momenta):
 		return np.array(momenta.pt2()**self.alpha)
